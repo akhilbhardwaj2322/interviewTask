@@ -1,0 +1,15 @@
+.DS_Store
+node_modules/
+*.css.d.ts
+*.scss.d.ts
+bundle.js
+bundle.css
+*.swp
+*.swo
+lib/
+coverage/
+*.tsbuildinfo
+build
+
+# Sentry Config File
+.env.sentry-build-plugin

@@ -1,0 +1,267 @@
+@import url(https://fonts.googleapis.com/css2?family=Nunito&display=swap);
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+path.line {
+  color: red;
+}
+
+.units {
+  @apply ml-1;
+}
+
+.sidebar-label {
+  display: inline-block;
+  width: 150px;
+}
+
+/* ================= General text ================= */
+h1 {
+  @apply my-2;
+  font-size: 28px;
+  font-weight: bold;
+  font-family: "Nunito", sans-serif;
+}
+
+h2 {
+  @apply my-2 text-lg font-semibold;
+}
+
+h3 {
+  @apply my-2 text-base font-semibold;
+}
+h4 {
+  @apply text-2xl font-semibold;
+}
+
+label {
+  @apply mr-2;
+}
+
+p,
+span,
+label,
+div {
+  &.danger {
+    @apply text-red-600;
+  }
+}
+
+/* ================= Interactive elements ================= */
+input,
+textarea,
+select,
+button {
+  &:focus {
+    outline: 1px solid black;
+  }
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="email"],
+select,
+textarea {
+  @apply border rounded-md border-gray-300 px-1 py-0.5 bg-gray-50;
+}
+
+select {
+  @apply px-1;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  @apply px-2;
+}
+
+input.input-short {
+  width: 70px;
+  text-align: right;
+}
+
+input.input-short.error {
+  @apply bg-red-100;
+  border-color: red;
+  border-width: 1px;
+}
+
+input[type="checkbox"]:not(:checked) {
+  @apply border border-gray-300;
+}
+
+a {
+  @apply text-blue-500;
+  @apply transition;
+
+  &:hover,
+  &:active {
+    @apply text-blue-600;
+  }
+
+  .gray {
+    @apply text-gray-300;
+
+    &:hover,
+    &:active {
+      @apply text-blue-500;
+    }
+  }
+}
+
+button,
+.button,
+a.button {
+  @apply text-black bg-gray-200 rounded-md px-2 py-0.5 font-normal;
+  @apply hover:bg-gray-200 active:bg-gray-200;
+  @apply transition;
+  box-shadow: 1px 1px 1.5px 0 #ddd;
+
+  &:active {
+    box-shadow: none;
+    transform: translate(1px, 1px);
+  }
+
+  &:hover,
+  :active,
+  :focused {
+    @apply: bg-yellow-300;
+    background: red;
+  }
+
+  &.danger {
+    @apply text-white bg-red-500 text-white;
+
+    &:hover {
+      @apply bg-red-600;
+    }
+
+    &:active {
+      @apply bg-red-600;
+      box-shadow: none;
+      transform: translate(1px, 1px);
+    }
+  }
+
+  &.primary,
+  &.cancel {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none;
+  }
+
+  &.primary {
+    background-color: rgba(163, 225, 235, 1);
+
+    &:hover,
+    &:active {
+      background-color: rgba(163, 225, 235, 0.8);
+    }
+
+    &:disabled {
+      @apply bg-gray-300 text-gray-700 cursor-not-allowed;
+    }
+  }
+
+  &.cancel {
+    &:hover,
+    &:active {
+      background-color: rgba(130, 130, 130, 0.8);
+    }
+  }
+
+  &.dark {
+    @apply bg-black hover:bg-gray-900 active:bg-gray-900 text-white;
+  }
+}
+
+/* ================= Tables ================= */
+thead tr {
+  @apply border-b border-gray-500;
+}
+
+tbody tr {
+  @apply border-b border-dotted border-gray-400;
+}
+
+td,
+th {
+  @apply pr-2 py-1 last:pr-0;
+  height: 40px;
+  /* It actually works like min-height */
+
+  input[type="text"],
+  input[type="password"],
+  select,
+  textarea {
+    width: 90%;
+  }
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0px rgba(255, 0, 0, 0.5);
+    /* Red shadow at the start and end */
+    border-color: rgba(255, 0, 0, 0.5);
+    /* Red border at the start and end */
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    /* Red shadow in the middle */
+    border-color: rgba(255, 0, 0, 1);
+    /* Solid red border in the middle */
+  }
+}
+
+.flash-shadow {
+  animation: flash 1s infinite;
+  border: 2px solid rgba(255, 0, 0, 0.5);
+}
+
+/* -------------------------------------------------------------- AKHIL -------------------------------------------------------------- */
+
+.thm-btn-1 {
+  @apply py-2 px-6 rounded-lg relative z-0 text-white text-lg overflow-hidden text-center;
+  &::before{}
+  &::after{
+    @apply content-[""] absolute top-0 left-0 -z-10 w-full h-full bg-thmBlue;
+  }
+}
+
+.thmLink{
+    @apply text-thmBlue text-base underline;
+}
+
+.formContainer{
+    @apply w-full h-full flex items-center justify-center;
+    .formOutter{
+        @apply w-full md:max-w-lg py-10 px-10 bg-white relative z-0;
+        .title{
+            @apply mb-5;
+        }
+    }
+}
+
+.feildOutter {
+  @apply flex flex-col;
+  label {
+    @apply font-semibold text-base;
+  }
+  input {
+    @apply border border-gray-200 rounded-md w-full bg-[#F9FAFB] px-3 py-2;
+  }
+  .error {
+    @apply text-red-500 text-sm;
+  }
+  .example {
+    @apply text-base font-normal;
+    font-family: "Nunito", sans-serif;
+  }
+}
