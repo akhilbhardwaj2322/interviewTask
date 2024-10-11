@@ -7,8 +7,6 @@ import Hide from "../../assets/hide.svg?react";
 import Back from "../../assets/back.svg?react";
 import "../../assets/view.svg";
 import "../../assets/hide.svg";
-// import styles from "./index.module.scss";
-// import classanames from "classnames";
 
 interface SignupForm {
   email: string;
@@ -16,13 +14,26 @@ interface SignupForm {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  organisationNAme: string;
+  organisationName: string;
   promoCode: string;
 }
+
+type FormDataType = {
+  [key: string]: string; // Adjust the type as per your form data structure
+};
 
 const SignupPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
+  const [formData, setFormData] = useState<SignupForm>({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    organisationName: "",
+    promoCode: "",
+  });
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
   const {
@@ -31,25 +42,43 @@ const SignupPage = () => {
     formState: { errors },
     clearErrors,
     reset,
+    watch,
+    trigger,
   } = useForm<SignupForm>();
   const { errorAlert, setErrorAlert } = useErrorAlert();
 
-  const nextStep = () => {
-    setStep(step + 1);
-    console.log(errors, "errors");
+  const handleChange =
+    (input: keyof FormDataType) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData({ ...formData, [input]: e.target.value });
+    };
+
+  let passwordValue = watch("password");
+  let confirmPassword = watch("confirmPassword");
+
+  const nextStep = async () => {
+    const resutl = await trigger(["password", "confirmPassword", "email"]);
+    if (resutl === true) {
+      if (errors.email || errors.password || errors.confirmPassword) {
+        return;
+      }
+      if (passwordValue !== confirmPassword) {
+        return;
+      }
+      setStep(step + 1);
+    }
   };
   const pervStep = () => {
     setStep(step - 1);
   };
 
   const onSubmit = (data: SignupForm) => {
-    if (step === 1) {
-      nextStep();
-    } else if (step === 2) {
-      setErrorAlert("Signup failed. Not Implemented.");
+    if (data) {
       console.log("Signup with data", data);
       clearErrors();
       reset();
+    } else {
+      setErrorAlert("Signup failed. Not Implemented.");
     }
   };
 
@@ -91,8 +120,16 @@ const SignupPage = () => {
                   </label>
                   <label>Email*</label>
                   <input
-                    type="text"
-                    {...register("email", { required: "Email is required." })}
+                    type="email"
+                    {...register("email", {
+                      required: "Email is required.",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "invalid email address",
+                      },
+                    })}
+                    value={formData.email}
+                    onChange={handleChange("email")}
                   />
                   {errors.email ? (
                     <span className="error">{errors.email.message}</span>
@@ -108,13 +145,18 @@ const SignupPage = () => {
                       {...register("password", {
                         required: "Password is required.",
                       })}
+                      value={formData.password}
+                      onChange={handleChange("password")}
                     />
                     <div
-                      className="absolute right-3 top-1/3"
+                      className="absolute z-10 right-3 top-1/3 cursor-pointer"
                       onClick={togglePasswordVisibilityOne}
                     >
-                      {showConfirmPassword && <Show className="w-5 h-5" />}
-                      {!showConfirmPassword && <Hide className="w-5 h-5" />}
+                      {showPassword ? (
+                        <Hide className="w-5 h-5" />
+                      ) : (
+                        <Show className="w-5 h-5" />
+                      )}
                     </div>
                   </div>
                   {errors.password ? (
@@ -131,16 +173,21 @@ const SignupPage = () => {
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       id="password"
-                      {...register("password", {
+                      {...register("confirmPassword", {
                         required: "Password is required.",
                       })}
+                      value={formData.confirmPassword}
+                      onChange={handleChange("confirmPassword")}
                     />
                     <div
-                      className="absolute right-3 top-1/3"
+                      className="absolute z-10 right-3 top-1/3 cursor-pointer"
                       onClick={togglePasswordVisibilityTwo}
                     >
-                      {showConfirmPassword && <Show className="w-5 h-5" />}
-                      {!showConfirmPassword && <Hide className="w-5 h-5" />}
+                      {showConfirmPassword ? (
+                        <Hide className="w-5 h-5" />
+                      ) : (
+                        <Show className="w-5 h-5" />
+                      )}
                     </div>
                   </div>
                   {errors.password ? (
@@ -151,10 +198,7 @@ const SignupPage = () => {
                     </span>
                   )}
                 </div>
-                <div
-                  className="thm-btn-1 w-full"
-                  onClick={handleSubmit(nextStep)}
-                >
+                <div className="thm-btn-1 w-full" onClick={nextStep}>
                   Continue
                 </div>
                 <div>
@@ -178,6 +222,8 @@ const SignupPage = () => {
                         {...register("firstName", {
                           required: "First Name is required.",
                         })}
+                        value={formData.firstName}
+                        onChange={handleChange("firstName")}
                       />
                       {errors.firstName ? (
                         <span className="error">
@@ -194,6 +240,8 @@ const SignupPage = () => {
                         {...register("lastName", {
                           required: "Last Name is required.",
                         })}
+                        value={formData.lastName}
+                        onChange={handleChange("lastName")}
                       />
                       {errors.lastName ? (
                         <span className="error">{errors.lastName.message}</span>
@@ -207,13 +255,15 @@ const SignupPage = () => {
                   <label>Organization Name*</label>
                   <input
                     type="text"
-                    {...register("organisationNAme", {
+                    {...register("organisationName", {
                       required: "Organization Name is required.",
                     })}
+                    value={formData.organisationName}
+                    onChange={handleChange("organisationName")}
                   />
-                  {errors.organisationNAme ? (
+                  {errors.organisationName ? (
                     <span className="error">
-                      {errors.organisationNAme.message}
+                      {errors.organisationName.message}
                     </span>
                   ) : (
                     <span className="example">
@@ -225,14 +275,14 @@ const SignupPage = () => {
                   <label>Promo code*</label>
                   <input
                     type="text"
-                    {...register("organisationNAme", {
+                    {...register("promoCode", {
                       required: "Promo code is required.",
                     })}
+                    value={formData.promoCode}
+                    onChange={handleChange("promoCode")}
                   />
-                  {errors.organisationNAme ? (
-                    <span className="error">
-                      {errors.organisationNAme.message}
-                    </span>
+                  {errors.promoCode ? (
+                    <span className="error">{errors.promoCode.message}</span>
                   ) : (
                     <span className="example">
                       Enter your promo code (if you have one).
