@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import ErrorBanner from "web/components/ErrorBanner";
 import { useErrorAlert } from "web/hooks/useErrorAlert";
@@ -17,55 +17,89 @@ interface SignupForm {
   organisationName: string;
   promoCode: string;
 }
-
-type FormDataType = {
-  [key: string]: string; // Adjust the type as per your form data structure
+const DefaultValues = {
+  email: "",
+  password: "",
+  confirmPassword: "",
+  firstName: "",
+  lastName: "",
+  organisationName: "",
+  promoCode: "",
 };
 
 const SignupPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
-  const [formData, setFormData] = useState<SignupForm>({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
-    organisationName: "",
-    promoCode: "",
-  });
+  const [emailSuccess, setEmailSuccess] = useState<string>("");
+  const [passwordSuccess, setPasswordSuccess] = useState<string>("");
+  const [confirmPasswordSuccess, setConfirmPasswordSuccess] =
+    useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState,
     clearErrors,
     reset,
     watch,
     trigger,
-  } = useForm<SignupForm>();
+    getValues,
+  } = useForm<SignupForm>({ defaultValues: DefaultValues });
+  const { errors } = formState;
   const { errorAlert, setErrorAlert } = useErrorAlert();
 
-  const handleChange =
-    (input: keyof FormDataType) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFormData({ ...formData, [input]: e.target.value });
-    };
-
-  let passwordValue = watch("password");
+  let email = watch("email");
+  let password = watch("password");
   let confirmPassword = watch("confirmPassword");
+  let getemail = getValues("email");
+  let getpassword = getValues("password");
+  let getconfirmPassword = getValues("confirmPassword");
+
+  const email_validate = (email: string) => {
+    var re = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    return re.test(email);
+  };
+  const password_validate = (password: string) => {
+    var re = {
+      capital: /(?=.*[A-Z])/,
+      length: /(?=.{10,40}$)/,
+      specialChar: /[ -\/:-@\[-\`{-~]/,
+      digit: /(?=.*[0-9])/,
+    };
+    return (
+      re.capital.test(password) &&
+      re.length.test(password) &&
+      re.specialChar.test(password) &&
+      re.digit.test(password)
+    );
+  };
+
+  const validEmail = email_validate(getemail);
+  const validPassword = password_validate(getpassword);
+  const validConfirmPassword = getpassword === getconfirmPassword;
+
+  useEffect(() => {
+    if (email && validEmail) {
+      setEmailSuccess("Valid email!");
+    }
+
+    if (password && validPassword) {
+      setPasswordSuccess("Valid password!");
+    }
+    if (confirmPassword && validConfirmPassword) {
+      setConfirmPasswordSuccess("Confirm Password Matched!");
+    }
+  }, [email, password, confirmPassword]);
 
   const nextStep = async () => {
     const resutl = await trigger(["password", "confirmPassword", "email"]);
-    if (resutl === true) {
-      if (errors.email || errors.password || errors.confirmPassword) {
-        return;
+    if (resutl) {
+      if (validEmail && validPassword && validConfirmPassword) {
+        clearErrors();
+        setStep(step + 1);
       }
-      if (passwordValue !== confirmPassword) {
-        return;
-      }
-      setStep(step + 1);
     }
   };
   const pervStep = () => {
@@ -94,7 +128,7 @@ const SignupPage = () => {
     <>
       <div className="formContainer">
         <div className="formOutter">
-          {step === 2 && (
+          {step == 2 && (
             <div className="flex gap-3 items-center mb-5" onClick={pervStep}>
               <div>
                 <Back className="w-5 h-5" />
@@ -112,27 +146,32 @@ const SignupPage = () => {
             className={`flex flex-col gap-4`}
           >
             <ErrorBanner message={errorAlert} />
-            {step === 1 && (
+            {step == 1 && (
               <>
                 <div className="feildOutter">
                   <label className="example uppercase">
-                    Account Infomation
+                    Account Information
                   </label>
                   <label>Email*</label>
                   <input
+                    className={`${validEmail && "valid"}`}
                     type="email"
                     {...register("email", {
-                      required: "Email is required.",
+                      required: {
+                        value: true,
+                        message: "Email is required.",
+                      },
                       pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "invalid email address",
+                        value:
+                          /[a-z0-9\._%+!$&*=^|~#%'`?{}/\-]+@([a-z0-9\-]+\.){1,}([a-z]{2,16})/,
+                        message: "Invalid email address",
                       },
                     })}
-                    value={formData.email}
-                    onChange={handleChange("email")}
                   />
-                  {errors.email ? (
+                  {errors.email && !validEmail ? (
                     <span className="error">{errors.email.message}</span>
+                  ) : validEmail ? (
+                    <p className="success">{emailSuccess}</p>
                   ) : (
                     <span className="example">E.g., john.doe@example.com</span>
                   )}
@@ -141,12 +180,19 @@ const SignupPage = () => {
                   <label>Password*</label>
                   <div className="relative z-0">
                     <input
+                      className={`${validPassword && "valid"}`}
                       type={showPassword ? "text" : "password"}
                       {...register("password", {
-                        required: "Password is required.",
+                        required: {
+                          value: true,
+                          message: "Password is required.",
+                        },
+                        pattern: {
+                          value:
+                            /^(?=.*[A-Z])(?=.{7,40}$)(?=.*[ -\/:-@\[-\`{-~]{1,}).*$/,
+                          message: "Please enter a strong password",
+                        },
                       })}
-                      value={formData.password}
-                      onChange={handleChange("password")}
                     />
                     <div
                       className="absolute z-10 right-3 top-1/3 cursor-pointer"
@@ -159,8 +205,10 @@ const SignupPage = () => {
                       )}
                     </div>
                   </div>
-                  {errors.password ? (
+                  {errors.password && !validPassword ? (
                     <span className="error">{errors.password.message}</span>
+                  ) : validPassword ? (
+                    <p className="success">{passwordSuccess}</p>
                   ) : (
                     <span className="example">
                       At least 8 characters with a number & symbol
@@ -171,13 +219,17 @@ const SignupPage = () => {
                   <label>Confirm Password*</label>
                   <div className="relative z-0">
                     <input
+                      className={`${
+                        validConfirmPassword && confirmPassword && "valid"
+                      }`}
                       type={showConfirmPassword ? "text" : "password"}
                       id="password"
                       {...register("confirmPassword", {
-                        required: "Password is required.",
+                        required: {
+                          value: true,
+                          message: "Confirm Password is required.",
+                        },
                       })}
-                      value={formData.confirmPassword}
-                      onChange={handleChange("confirmPassword")}
                     />
                     <div
                       className="absolute z-10 right-3 top-1/3 cursor-pointer"
@@ -190,15 +242,24 @@ const SignupPage = () => {
                       )}
                     </div>
                   </div>
-                  {errors.password ? (
-                    <span className="error">{errors.password.message}</span>
+                  {errors.confirmPassword ? (
+                    <span className="error">
+                      {errors.confirmPassword.message}
+                    </span>
+                  ) : validConfirmPassword && confirmPassword ? (
+                    <p className="success">{confirmPasswordSuccess}</p>
                   ) : (
                     <span className="example">
                       Re-enter the same password to confirm
                     </span>
                   )}
                 </div>
-                <div className="thm-btn-1 w-full" onClick={nextStep}>
+                <div
+                  className="thm-btn-1 w-full"
+                  onClick={() => {
+                    nextStep();
+                  }}
+                >
                   Continue
                 </div>
                 <div>
@@ -222,8 +283,6 @@ const SignupPage = () => {
                         {...register("firstName", {
                           required: "First Name is required.",
                         })}
-                        value={formData.firstName}
-                        onChange={handleChange("firstName")}
                       />
                       {errors.firstName ? (
                         <span className="error">
@@ -240,8 +299,6 @@ const SignupPage = () => {
                         {...register("lastName", {
                           required: "Last Name is required.",
                         })}
-                        value={formData.lastName}
-                        onChange={handleChange("lastName")}
                       />
                       {errors.lastName ? (
                         <span className="error">{errors.lastName.message}</span>
@@ -258,8 +315,6 @@ const SignupPage = () => {
                     {...register("organisationName", {
                       required: "Organization Name is required.",
                     })}
-                    value={formData.organisationName}
-                    onChange={handleChange("organisationName")}
                   />
                   {errors.organisationName ? (
                     <span className="error">
@@ -278,8 +333,6 @@ const SignupPage = () => {
                     {...register("promoCode", {
                       required: "Promo code is required.",
                     })}
-                    value={formData.promoCode}
-                    onChange={handleChange("promoCode")}
                   />
                   {errors.promoCode ? (
                     <span className="error">{errors.promoCode.message}</span>
